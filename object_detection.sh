@@ -5,6 +5,6 @@ source activate
 cd /home/pi/object_detection
 
 python3 detect_picamera.py \
-  --model detect.tflite \
-  --labels coco_labels.txt
+  --model ./model/detect.tflite \
+  --labels ./label/coco_labels.txt
 
