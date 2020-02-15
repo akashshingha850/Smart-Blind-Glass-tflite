@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-  DATA_DIR="/home/pi/object_detection"
+  DATA_DIR="/home/pi/object_detection_tflite"
 else
   DATA_DIR="$1"
 fi
