@@ -46,14 +46,14 @@ Return here after you perform the `pip install` command.
 First, clone this Git repo onto your Raspberry Pi like this:
 
 ```
-git clone https://github.com/tensorflow/examples --depth 1
+git clone https://github.com/akashshingha850/object_detection_tflite.git
 ```
 
 Then use our script to install a couple Python packages, and
 download the MobileNet model and labels file:
 
 ```
-cd examples/lite/examples/object_detection/raspberry_pi
+cd object_detection
 
 # The script takes an argument specifying where you want to save the model files
 bash download.sh /tmp
