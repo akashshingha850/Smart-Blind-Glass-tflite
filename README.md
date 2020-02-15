@@ -60,6 +60,12 @@ bash download.sh
 ```
 
 
+## Make the .sh script executable
+
+```
+chmod +x object_detection.sh
+```
+
 ## Run the example
 
 ```
