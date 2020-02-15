@@ -56,7 +56,7 @@ download the MobileNet model and labels file:
 cd object_detection_tflite
 
 # The script takes an argument specifying where you want to save the model files
-bash download.sh /tmp
+bash download.sh
 ```
 
 
@@ -64,8 +64,8 @@ bash download.sh /tmp
 
 ```
 python3 detect_picamera.py \
-  --model /tmp/detect.tflite \
-  --labels /tmp/coco_labels.txt
+  --model ./model/detect.tflite \
+  --labels ./label/coco_labels.txt
 ```
 
 You should see the camera feed appear on the monitor attached to your Raspberry
