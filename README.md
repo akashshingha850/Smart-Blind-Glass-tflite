@@ -53,7 +53,7 @@ Then use our script to install a couple Python packages, and
 download the MobileNet model and labels file:
 
 ```
-cd object_detection
+cd object_detection_tflite
 
 # The script takes an argument specifying where you want to save the model files
 bash download.sh /tmp
