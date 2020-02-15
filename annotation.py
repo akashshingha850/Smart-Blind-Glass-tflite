@@ -30,7 +30,56 @@ from __future__ import print_function
 
 from PIL import Image
 from PIL import ImageDraw
-from string import digits 
+
+
+import subprocess #for espeak
+from string import digits  #to remove digits from string
+import re
+
+import RPi.GPIO as GPIO
+import time
+
+#GPIO Mode (BOARD / BCM)
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+#set GPIO Pins
+GPIO_TRIGGER = 23
+GPIO_ECHO = 24
+
+#set GPIO direction (IN / OUT)
+GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
+GPIO.setup(GPIO_ECHO, GPIO.IN)
+
+
+def distance():
+    # set Trigger to HIGH
+    GPIO.output(GPIO_TRIGGER, True)
+ 
+    # set Trigger after 0.01ms to LOW
+    time.sleep(0.00001)
+    GPIO.output(GPIO_TRIGGER, False)
+ 
+    StartTime = time.time()
+    StopTime = time.time()
+ 
+    # save StartTime
+    while GPIO.input(GPIO_ECHO) == 0:
+        StartTime = time.time()
+ 
+    # save time of arrival
+    while GPIO.input(GPIO_ECHO) == 1:
+        StopTime = time.time()
+ 
+    # time difference between start and arrival
+    TimeElapsed = StopTime - StartTime
+    # multiply with the sonic speed (34300 cm/s)
+    # and divide by 2, because there and back
+    distance = (TimeElapsed * 34300) / 2
+ 
+    return distance
+    
+    
 
 def _round_up(value, n):
   """Rounds up the given value to the next number divisible by n.
@@ -130,4 +179,8 @@ class Annotator:
     res = res.replace('.ms','')
     res = res.replace('.','')
     print(res)
+    
+    dist = 1
+    #dist = distance()
+    subprocess.call(['espeak',"There is a"+ str(res) + "in front of you about" + str(int(dist/100)) + "meters" ])
     
