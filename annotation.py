@@ -35,6 +35,7 @@ from PIL import ImageDraw
 import subprocess #for espeak
 from string import digits  #to remove digits from string
 import re
+res=0
 
 import RPi.GPIO as GPIO
 import time
@@ -146,6 +147,8 @@ class Annotator:
   def clear(self):
     """Clears the contents of the overlay, leaving only the plain background."""
     self._draw.rectangle((0, 0) + self._dims, fill=(0, 0, 0, 0x00))
+    #subprocess.call(['espeak',str(res)])
+    
 
   def bounding_box(self, rect, outline=None, fill=None):
     """Draws a bounding box around the specified rectangle.
@@ -179,8 +182,11 @@ class Annotator:
     res = res.replace('.ms','')
     res = res.replace('.','')
     print(res)
-    
-    dist = 1
+    file = open('text.txt', 'w')
+    #y = "Hello World2" 
+    file.write(res)
+    file.close()
     #dist = distance()
-    subprocess.call(['espeak',"There is a"+ str(res) + "in front of you about" + str(int(dist/100)) + "meters" ])
+    #subprocess.call(['espeak',"There is a"+ str(res) + "in front of you about" + str(int(dist/100)) + "meters" ])
     
+
