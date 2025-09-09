@@ -1,150 +1,243 @@
-# TensorFlow Lite Python object detection example with Pi Camera
+# Smart Blind Glasses: Real-Time Object Detection and Navigation Assistance System for Visually Impaired Using TensorFlow Lite
 
-This example uses [TensorFlow Lite](https://tensorflow.org/lite) with Python
-on a Raspberry Pi to perform real-time object detection using images
-streamed from the Pi Camera. It draws a bounding box around each detected
-object in the camera preview (when the object score is above a given threshold).
+This project implements an intelligent assistive device for visually impaired users using [TensorFlow Lite](https://tensorflow.org/lite) on a Raspberry Pi. The Smart Blind Glass system combines multiple technologies to provide real-time environmental awareness through audio feedback.
 
-Although the TensorFlow model and nearly all the code in here can work with
-other hardware, the code uses the [`picamera`](
-https://picamera.readthedocs.io/en/latest/) API to capture images from the Pi
-Camera. So you can modify those parts of the code if you want to use a different
-camera input.
+## Features
 
-At the end of this page, there are extra steps to accelerate the example using
-the Coral USB Accelerator, which increases the inference speed by ~10x.
+- **Real-time Object Detection**: Uses TensorFlow Lite to identify objects in the environment via Pi Camera
+- **Audio Feedback**: Text-to-speech announcements of detected objects using espeak
+- **Ultrasonic Distance Sensing**: Dual sonar sensors for obstacle detection and distance measurement
+- **Smart Notifications**: Email integration and clock functionality
+- **Lightweight**: Optimized for Raspberry Pi with minimal resource usage
+
+The system is designed to be worn as smart glasses, providing hands-free navigation assistance and environmental awareness for visually impaired users.
+
+## Hardware Requirements
+
+- Raspberry Pi (3B+ or 4 recommended)
+- Pi Camera Module
+- HC-SR04 Ultrasonic Sensors (2x)
+- Speaker or headphones for audio output
+- Jumper wires and breadboard for connections
+
+Optional: Coral USB Accelerator for enhanced performance (~10x speed increase)
 
 
-## Set up your hardware
+## Hardware Setup
 
+### Raspberry Pi Setup
 Before you begin, you need to [set up your Raspberry Pi](
 https://projects.raspberrypi.org/en/projects/raspberry-pi-setting-up) with
-Raspbian (preferably updated to Buster).
+Raspbian (preferably updated to Buster or later).
 
-You also need to [connect and configure the Pi Camera](
-https://www.raspberrypi.org/documentation/configuration/camera.md).
+### Pi Camera Configuration
+[Connect and configure the Pi Camera](
+https://www.raspberrypi.org/documentation/configuration/camera.md) module.
 
-And to see the results from the camera, you need a monitor connected
-to the Raspberry Pi. It's okay if you're using SSH to access the Pi shell
-(you don't need to use a keyboard connected to the Pi)—you only need a monitor
-attached to the Pi to see the camera stream.
+### Ultrasonic Sensor Wiring
+Connect the HC-SR04 ultrasonic sensors as follows:
+- **Sensor 1**: Trigger Pin 18, Echo Pin 24
+- **Sensor 2**: Trigger Pin 17, Echo Pin 27
+- **Power**: 5V and GND connections
 
+### Audio Output
+Ensure you have speakers or headphones connected to the Pi's audio output for text-to-speech feedback.
 
-## Install the TensorFlow Lite runtime
-
-In this project, all you need from the TensorFlow Lite API is the `Interpreter`
-class. So instead of installing the large `tensorflow` package, we're using the
-much smaller `tflite_runtime` package.
-
-To install this on your Raspberry Pi, follow the instructions in the
-[Python quickstart](https://www.tensorflow.org/lite/guide/python).
-Return here after you perform the `pip install` command.
+### Display (Optional)
+A monitor can be connected to see the camera feed with bounding boxes during development/testing.
 
 
-## Download the example files
+## Installation
 
-First, clone this Git repo onto your Raspberry Pi like this:
+### Install TensorFlow Lite Runtime
 
+This project uses the lightweight `tflite_runtime` package instead of the full TensorFlow package for better performance on Raspberry Pi.
+
+Follow the instructions in the [Python quickstart](https://www.tensorflow.org/lite/guide/python) to install TensorFlow Lite runtime.
+
+### Install Additional Dependencies
+
+Install required system packages:
+```bash
+sudo apt update
+sudo apt install espeak espeak-data libespeak1 libespeak-dev
 ```
-git clone https://github.com/akashshingha850/object_detection_tflite.git
+
+### Download the Project
+
+Clone this repository onto your Raspberry Pi:
+
+```bash
+git clone https://github.com/akashshingha850/Smart-Blind-Glass-tflite.git
+cd Smart-Blind-Glass-tflite
 ```
 
-Then use our script to install a couple Python packages, and
-download the MobileNet model and labels file:
+### Install Python Dependencies
 
+```bash
+pip3 install -r requirements.txt
 ```
-cd object_detection_tflite
 
-# The script takes an argument specifying where you want to save the model files
+### Download Models and Setup
+
+Run the setup script to download the TensorFlow Lite model and labels:
+
+```bash
 bash download.sh
 ```
 
+### Make Scripts Executable
 
-## Make the .sh script executable
-
-```
+```bash
 chmod +x object_detection.sh
+chmod +x object_speak.sh
 ```
 
-## Run the example
+## Usage
 
-```
+### Basic Object Detection
+
+Run the basic object detection with visual display:
+
+```bash
 python3 detect_picamera.py \
   --model ./model/detect.tflite \
   --labels ./label/coco_labels.txt
 ```
 
-You should see the camera feed appear on the monitor attached to your Raspberry
-Pi. Put some objects in front of the camera, like a coffee mug or keyboard, and
-you'll see boxes drawn around those that the model recognizes, including the
-label and score for each. It also prints the amount of time it took
-to perform each inference in milliseconds at the top-left corner of the screen.
+### Smart Glass Mode (Audio-Only)
 
-For more information about executing inferences with TensorFlow Lite, read
-[TensorFlow Lite inference](https://www.tensorflow.org/lite/guide/inference).
+For hands-free operation with audio feedback:
 
-
-## Speed up the inferencing time (optional)
-
-If you want to significantly speed up the inference time, you can attach an
-ML accelerator such as the [Coral USB Accelerator](
-https://coral.withgoogle.com/products/accelerator)—a USB accessory that adds
-the [Edge TPU ML accelerator](https://coral.withgoogle.com/docs/edgetpu/faq/)
-to any Linux-based system.
-
-If you have a Coral USB Accelerator, follow these additional steps to
-delegate model execution to the Edge TPU processor:
-
-1.  First, be sure you have completed the [USB Accelerator setup instructions](
-    https://coral.withgoogle.com/docs/accelerator/get-started/).
-
-2.  Now open the `detect_picamera.py` file and add the following import at
-    the top:
-
-    ```
-    from tflite_runtime.interpreter import load_delegate
-    ```
-
-    And then find the line that initializes the `Interpreter`, which looks like
-    this:
-
-    ```
-    interpreter = Interpreter(args.model)
-    ```
-
-    And change it to specify the Edge TPU delegate:
-
-    ```
-    interpreter = Interpreter(args.model,
-        experimental_delegates=[load_delegate('libedgetpu.so.1.0')])
-    ```
-
-    The `libedgetpu.so.1.0` file is provided by the Edge TPU library you
-    installed during the USB Accelerator setup in step 1.
-
-3.  Finally, you need a version of the model that's compiled for the Edge TPU.
-
-    Normally, you need to use use the [Edge TPU Compiler](
-    https://coral.withgoogle.com/docs/edgetpu/compiler/) to compile your
-    `.tflite` file. But the compiler tool isn't compatible with Raspberry
-    Pi, so we included a pre-compiled version of the model in the `download.sh`
-    script above.
-
-    So you already have the compiled model you need:
-    `mobilenet_ssd_v2_coco_quant_postprocess_edgetpu.tflite`.
-
-Now you're ready to execute the TensorFlow Lite model on the Edge TPU. Just run
-`detect_picamera.py` again, but be sure you specify the model that's compiled
-for the Edge TPU (it uses the same labels file as before):
-
-```
-python3 detect_picamera.py \
-  --model /tmp/mobilenet_ssd_v2_coco_quant_postprocess_edgetpu.tflite \
-  --labels /tmp/coco_labels.txt
+```bash
+python3 object_speak.py
 ```
 
-You should see significantly faster inference speeds.
+This mode provides:
+- Object detection with spoken announcements
+- Distance measurement using ultrasonic sensors
+- Audio feedback for navigation assistance
 
-For more information about creating and running TensorFlow Lite models with
-Coral devices, read [TensorFlow modles on the Edge TPU](
-https://coral.withgoogle.com/docs/edgetpu/models-intro/).
+### Additional Features
+
+- **Clock functionality**: `python3 clock.py`
+- **Distance sensing**: `python3 sonar.py`
+- **Email integration**: `python3 mail.py`
+- **Text processing**: `python3 write_text.py`
+
+### Shell Scripts
+
+Use the provided shell scripts for automated execution:
+- `./object_detection.sh` - Basic object detection
+- `./object_speak.sh` - Audio-enhanced smart glass mode
+
+The system will announce detected objects and provide distance information through audio feedback, making it ideal for visually impaired users to navigate their environment safely.
+
+
+## Performance Optimization (Optional)
+
+### Coral USB Accelerator Support
+
+For significantly faster inference speeds, you can use the [Coral USB Accelerator](
+https://coral.withgoogle.com/products/accelerator) with Edge TPU support.
+
+#### Setup Steps:
+
+1. Complete the [USB Accelerator setup instructions](
+   https://coral.withgoogle.com/docs/accelerator/get-started/).
+
+2. Modify `detect_picamera.py` to use the Edge TPU delegate:
+
+   Add the import:
+   ```python
+   from tflite_runtime.interpreter import load_delegate
+   ```
+
+   Update the interpreter initialization:
+   ```python
+   interpreter = Interpreter(args.model,
+       experimental_delegates=[load_delegate('libedgetpu.so.1.0')])
+   ```
+
+3. Use the Edge TPU-compiled model:
+   ```bash
+   python3 detect_picamera.py \
+     --model /tmp/mobilenet_ssd_v2_coco_quant_postprocess_edgetpu.tflite \
+     --labels /tmp/coco_labels.txt
+   ```
+
+This optimization can improve inference speeds by up to 10x, making the real-time object detection more responsive for assistive applications.
+
+## Project Structure
+
+```
+Smart-Blind-Glass-tflite/
+├── detect_picamera.py      # Main object detection script
+├── object_speak.py         # Audio-enhanced detection
+├── sonar.py               # Ultrasonic distance sensing
+├── clock.py               # Clock functionality
+├── mail.py                # Email integration
+├── write_text.py          # Text processing
+├── annotation.py          # Object annotation utilities
+├── model/                 # TensorFlow Lite models
+├── label/                 # Object classification labels
+├── requirements.txt       # Python dependencies
+└── *.sh                  # Shell scripts for automation
+```
+
+## Contributing
+
+This project is designed to assist visually impaired users. Contributions that improve accessibility, performance, or add new assistive features are welcome.
+
+## License
+
+This project builds upon TensorFlow Lite examples and is intended for educational and assistive technology purposes.
+
+## Acknowledgments
+
+- TensorFlow Lite team for the base object detection framework
+- Raspberry Pi Foundation for the platform
+- Contributors to assistive technology development
+
+## Citation
+
+If you use this project in your research or work, please cite the following papers:
+
+1. **Development of a Microprocessor Based Smart and Safety Blind Glass SystemMicroprocessor-Based Smart Blind Glass System for Visually Impaired People**  
+  DOI: [10.1109/ICAECT49130.2020.9036504](https://ieeexplore.ieee.org/document/9036504)
+
+```bibtex
+@InProceedings{10.1007/978-981-13-7564-4_13,
+author="Islam, Md. Tobibul
+and Ahmad, Mohiuddin
+and Bappy, Akash Shingha",
+editor="Uddin, Mohammad Shorif
+and Bansal, Jagdish Chand",
+title="Microprocessor-Based Smart Blind Glass System for Visually Impaired People",
+booktitle="Proceedings of International Joint Conference on Computational Intelligence",
+year="2020",
+publisher="Springer Nature Singapore",
+address="Singapore",
+pages="151--161",
+isbn="978-981-13-7564-4"
+}
+```   
+
+2. **Microprocessor-Based Smart Blind Glass System for Visually Impaired People**  
+   DOI: [10.1007/978-981-13-7564-4_13](https://link.springer.com/chapter/10.1007/978-981-13-7564-4_13)
+
+
+
+```bibtex
+@INPROCEEDINGS{9036504,
+  author={Islam, Md.Tobibul and Ahmad, Mohiuddin and Bappy, Akash shingha},
+  booktitle={2019 International Conference on Computer, Communication, Chemical, Materials and Electronic Engineering (IC4ME2)}, 
+  title={Development of a Microprocessor Based Smart and Safety Blind Glass System}, 
+  year={2019},
+  volume={},
+  number={},
+  pages={1-4},
+  keywords={Global Positioning System;Safety;Smart glasses;Google;Floors;Tracking;Smart blind glass;Safety System;microprocessor-based control;real-time tracking;Visually impaired people},
+  doi={10.1109/IC4ME247184.2019.9036504}}
+
+``` 
